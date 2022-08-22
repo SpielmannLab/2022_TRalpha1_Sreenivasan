@@ -1,0 +1,63 @@
+# Usage : nextflow run /data/humangen_mouse/scpipeline/src/sc_p_sample.nf -params-file /data/humangen_mouse/scpipeline/vs_sc_p_sample.yaml
+
+# Input folder is where you can find barcodes features and matrix from cellranger count output
+# List multiple samples in new lines with "-" as bullet points
+inputfolder:
+- "/data/humangen_mouse/hypthmsMittag/results/mpimg_L20987-1_C-wt_wIntrons/outs/filtered_feature_bc_matrix"
+- "/data/humangen_mouse/hypthmsMittag/results/mpimg_L20986-1_B-Tra1_wIntrons/outs/filtered_feature_bc_matrix"
+- "/data/humangen_mouse/hypthmsMittag/results/mpimg_L23584-1_Tra1-mutant_wIntrons/outs/filtered_feature_bc_matrix"
+- "/data/humangen_mouse/hypthmsMittag/results/mpimg_L23585-1_Tra1-WT_wIntrons/outs/filtered_feature_bc_matrix"
+
+# Provide names for samples as list. Cannot have "_" or Spaces.
+samplename:
+- "rep1-tra1" # Note carola mixed up the WT and Tra1
+- "rep1-wt" # Note carola mixed up the WT and Tra1
+- "rep2-tra1"
+- "rep2-wt"
+
+# Set the number of computing cores. Hardwired to 4. Do not change if you didn't change the internal script
+ncores: 4
+
+# Parameters for the pipeline
+
+#Filter QC
+mincount_p_gene: 1
+maxcount_p_gene: "Inf"
+mincell_p_gene: 3
+maxcell_p_gene: "Inf"
+mincount_p_cell: 900
+maxcount_p_cell: "Inf"
+mingene_p_cell: 700
+maxgene_p_cell: "Inf"
+maxpct_mt: 0.05
+maxpct_rb: 1
+rm_mt: "FALSE"
+rm_rb: "FALSE"
+
+#scrublet
+npcs_scrublet: 25
+exp_db_rate: 0.06
+threshold: 0.18
+
+#Normalization and scaling
+method: "standard" # 'standard', 'SCT'
+covars:
+
+#dim_reduction
+nhvg: 4000
+npcs: 20
+
+#cluster
+res: "0.01,0.05,0,1"
+
+#DE genes
+min_cell_group: 50
+min_pct : 0.1
+logfc_threshold: 0.25
+res_de_genes: 0.01
+test_use: 'wilcox' # 'roc','wilcox' (default in Seurat),'negbin'
+features: "Mog" #List of genes to be visualized in UMAP space(comma seperated value)
+no_of_pages: 1 # Number of pages to split the genes for feature plot
+
+# Folder where results should be saved. Need not exist
+outfolder: "/data/humangen_mouse/hypthmsMittag/analysis/scpipeline_analysis/single_sample_set7/"
