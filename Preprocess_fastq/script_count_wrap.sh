@@ -8,14 +8,14 @@ path_results="/data/humangen_mouse/hypthmsMittag/results"
 echo "Message: All paths have been set"
 
 # Define samples in a array
-samples=( "mpimg_L20986-1_B-Tra1" "mpimg_L20987-1_C-wt" )
-samples=( "mpimg_L23584-1_Tra1-mutant" "mpimg_L23585-1_Tra1-WT")
+# samples=( "mpimg_L20986-1_B-Tra1" "mpimg_L20987-1_C-wt" ) # Processing of Repeat 1
+samples=( "mpimg_L23584-1_Tra1-mutant" "mpimg_L23585-1_Tra1-WT") # Processing of Repeat 2
 
 
 for sample in ${samples[@]}
 do
 	sbatch --job-name=count_${sample} script_count_core.sh $sample $path_refdata $path_fastqdata $path_results
-	echo "Message: Job count_${sample} has been sent to script_count_core.sh"	
+	echo "Message: Job count_${sample} has been sent to script_count_core.sh"
 done
 
 echo "Message: All samples have been sent for count pipeline"
