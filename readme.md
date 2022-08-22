@@ -7,5 +7,5 @@ Following are the scripts used to analyse data, as presented in the manuscript
 4. Run Figure_Generation/make_figures.nf (nextflow run Figure_Generation/make_figures.nf) to perform custom analysis used in this manuscript as well as generate figures presented in the manuscript.
 
 
-Note. Absolute paths are used at certain instances, which will need to be adapted, as needed
+Note. Absolute paths are used at certain instances, which will need to be adapted, as needed.
 Note. Anaconda was used to set up the necessary environments
