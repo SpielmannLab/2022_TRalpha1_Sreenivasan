@@ -201,3 +201,11 @@ plot <- DimPlot(sc_obj, cols=col_reps, group.by="rep", reduction="umap", pt.size
   theme(legend.position="none")
 filename=paste0("umap_by_repeat.png")
 ggsave(plot=plot, filename=filename, width=7, height=7)
+
+
+# Save cell annotations etc. for upload to GEO
+sc_obj$annotation <- Idents(sc_obj)
+geo_metadata <- sc_obj@meta.data %>%
+  select(all_of(c("annotation","genotype", "rep", paste0("RNA_snn_res.",res))))
+filename <- "cell_annotations.tsv"
+write.table(geo_metadata, file=filename, sep="\t")

@@ -26,6 +26,7 @@ process figure_fulldata {
   file "*.pdf" into figure_qc_pdfs
   file "*.png" into figure_qc_pngs
   file "*x.rds" into file_sc_obj_ch, file_sc_obj_ch_copy1, file_sc_obj_ch_copy2
+  file "*.tsv" into cell_annotations_geo
   """
   Rscript /data/humangen_mouse/hypthmsMittag/analysis/scpipeline_analysis/code/figure_fulldata.R --file_sc_obj=${file_sc_obj} --file_markers=${file_markers} --file_functions=${file_functions} --res=${res}
   tree
