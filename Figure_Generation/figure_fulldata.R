@@ -17,6 +17,7 @@ suppressMessages(library(ggplot2))
 suppressMessages(library(cowplot))
 suppressMessages(library(docopt))
 suppressMessages(library(ggridges))
+suppressMessages(library(RColorBrewer))
 
 # --- Read all the arguments passed
 arguments <- docopt(doc, quoted_args=TRUE)
@@ -38,10 +39,9 @@ source(file_functions)
 # read file
 sc_obj <- readRDS(file_sc_obj)
 
-# Create new metadata called genotype and rep and save
+# Create new metadata called genotype and rep
 sc_obj$genotype <- gsub(sc_obj$orig.ident, pattern="\\w+-", replacement="")
 sc_obj$rep <- gsub(sc_obj$orig.ident, pattern="-\\w+", replacement="")
-saveRDS(object=sc_obj, file=gsub(file_sc_obj, pattern=".rds", replacement="x.rds"))
 
 # Doghnut plot of cell counts
 cell_counts <- select(sc_obj@meta.data,c("orig.ident")) %>%
@@ -85,7 +85,7 @@ cluster_key <- sc_obj@meta.data %>%
   names %>%
   grep(pattern=paste0("snn_res.",res), value=TRUE)
 plot <- DotPlot(sc_obj, features=markers$gene, group.by=cluster_key) +
-  scale_color_gradient(low="white", high="black") +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 filename=paste0("dotplot_nolabel.pdf")
 ggsave(plot, filename=filename, width=15, height=8)
@@ -99,11 +99,16 @@ sc_obj <- RenameIdents(sc_obj, "0"= "Neurons_1",
                               "4" = "Microglia, Macrophages",
                               "5" = "Neurons_2",
                               "6" = "Non-neuronal cells")
+
+# store annotations and save RDS
+sc_obj$main_cluster <- as.character(Idents(sc_obj))
+saveRDS(object=sc_obj, file=gsub(file_sc_obj, pattern=".rds", replacement="x.rds"))
+
 # reorder the clusters plotting
 Idents(sc_obj) <- factor(Idents(sc_obj), levels=levels(sc_obj)[c(1,6,2:5,7)])
 
 plot <- DotPlot(sc_obj, features=markers$gene) +
-  scale_color_gradient(low="white", high="black") +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   ylab("Cluster") +
   xlab("Gene")
@@ -111,7 +116,7 @@ filename=paste0("dotplot_label.pdf")
 ggsave(plot, filename=filename, width=10, height=4)
 
 plot <- DotPlot(sc_obj, features=markers$gene, cluster.idents=TRUE) +
-  scale_color_gradient(low="white", high="black") +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   xlab("Cluster") +
   ylab("Gene")
@@ -122,14 +127,14 @@ ggsave(plot, filename=filename, width=8, height=6)
 # Plot features from Campbell et al
 features_campbell <- c("Ptgds", "Car2", "Trf", "Plp1", "Mag","Cldn11","Hbb-bs","Hbb-bt", "Hba-a1", "Rgs5", "Acta2","Igfbp7", "Bcas1","Gpr17","Fyn","Pdgfra","Fabp7","Lhfpl3","Ctss","C1qb","C1qa","Dcn","Mgp","Apod","Ccdc153","Tmem212","Rarres2","Agt","Slc1a2","Slc1a3","Scn7a","Cldn10","Col25a1","6330403K07Rik","Nnat","Crym","Oxt","Pmch","Atp1b1","Vlp","Rgs16","Dlk1","Tac2","Prlr","Tmem35","Gal","Ghrh","Penk","Syt1","Slc18a2","Coch","Npy","Agrp","Crabp1","Ces1d","Epcam","Cyp2f2","Chga","Chgb","Scg2")
 plot <- DotPlot(sc_obj, features=features_campbell, cluster.idents=TRUE) +
-  scale_color_gradient(low="white", high="black") +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   xlab("Cluster") +
   ylab("Gene")
 filename=paste0("dotplot_label_clustered_campbelfeatures.pdf")
 ggsave(plot, filename=filename, width=20, height=6)
 plot <- DotPlot(sc_obj, features=features_campbell) +
-  scale_color_gradient(low="white", high="black") +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   xlab("Cluster") +
   ylab("Gene")
@@ -209,3 +214,20 @@ geo_metadata <- sc_obj@meta.data %>%
   select(all_of(c("annotation","genotype", "rep", paste0("RNA_snn_res.",res))))
 filename <- "cell_annotations.tsv"
 write.table(geo_metadata, file=filename, sep="\t")
+
+
+# Made dotplot for Jens_markers to show western blotting odc markers are only expressed in odcs - but only for WT
+cells <- sc_obj@meta.data %>%
+  filter(genotype=="wt" & !(main_cluster %in% c("Non-neuronal cells", "Neurons_2"))) %>%
+  rownames()
+sc_obj_subset <- subset(sc_obj, cells=cells)
+Idents(sc_obj_subset) <- sc_obj_subset$main_cluster
+
+jens_markers <- c("Tubb3", "Syp", "Gfap", "Sox10", "Mbp", "Arsg", "Olig2", "Cnp", "Mog", "Plp1","Cldn11", "Tmem117", "Slco3a1", "Dpyd", "Hcn2")
+plot <- DotPlot(sc_obj_subset, features=jens_markers) +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("Cluster") +
+  xlab("Gene")
+filename=paste0("dotplot_protein_markers_label.pdf")
+ggsave(plot, filename=filename, width=8, height=3.5)

@@ -37,7 +37,7 @@ coi <- sc_obj$main_cluster %>% unique
 # Features from LaManno extended data figure 7
 features_lamanno <- c("Pdgfra","Lhfpl3","Bmp4","Neu4","Kcnj12","Tmem2","Rras2","Sema4f","Tmem141","Arap2","Erbb3","Opalin","Plekhh1","Mog","Gjb1","Mal")
 
-p <- FeaturePlot(sc_obj, features=features_lamanno, cols=c("lightgrey", "black"), keep.scale="all", pt.size=0.25) &
+p <- FeaturePlot(sc_obj, features=features_lamanno, cols=c("#bababa", "#ca0020"), keep.scale="all", pt.size=0.25) &
   theme_void() &
   theme(plot.title=element_text(hjust=0.5, face="italic")) &
   theme(legend.position="none")

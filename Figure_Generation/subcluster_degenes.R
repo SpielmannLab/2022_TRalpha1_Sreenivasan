@@ -65,7 +65,7 @@ for(res in ress){
 		min.pct = 0.5,
 		test.use = "wilcox",
     only.pos=TRUE)
-  high_genes[[as.character(res)]] <- FindHighExpressGenes(sc_obj, assay="RNA", slot="data", n=50) # find highly expressed genes
+  high_genes[[as.character(res)]] <- FindHighExpressGenes(sc_obj, slot="data", n=50) # find highly expressed genes
   colorpalette[[as.character(res)]] <- colorRampPalette(brewer.pal(7, "Paired"))(length(levels(sc_obj)))
 }
 

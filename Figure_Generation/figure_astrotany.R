@@ -55,7 +55,7 @@ cluster_key <- sc_obj@meta.data %>%
   names %>%
   grep(pattern=paste0("snn_res.",res), value=TRUE)
 plot <- DotPlot(sc_obj, features=markergenes, group.by=cluster_key) +
-  scale_color_gradient(low="white", high="black") +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 filename=paste0("dotplot_nolabel.pdf")
 ggsave(plot, filename=filename, width=8, height=4)
@@ -69,10 +69,10 @@ ggsave(plot, filename=filename, width=8, height=32)
 Idents(sc_obj) <- sc_obj@meta.data[,cluster_key]
 sc_obj <- RenameIdents(sc_obj, "0"= "Astrocytes",
                               "1" = "Tanycytes",
-                              "2" = "Unknown_1")
+                              "2" = "VLMC")
 
 plot <- DotPlot(sc_obj, features=markergenes) +
-  scale_color_gradient(low="white", high="black") +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   ylab("Cluster") +
   xlab("Gene")
@@ -130,3 +130,10 @@ plot <- DimPlot(sc_obj, cols=col_reps, group.by="rep", reduction="umap", pt.size
   theme(legend.position="none")
 filename=paste0("umap_by_repeat.png")
 ggsave(plot=plot, filename=filename, width=7, height=7)
+
+# export subcluster annotations
+cell_annotations <- sc_obj@meta.data %>%
+  select(c(main_cluster, annotations)) %>%
+  rename(sub_cluster=annotations)
+filename="annotations_astrotany.tsv"
+write.table(cell_annotations, file=filename, sep="\t")

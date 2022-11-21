@@ -38,9 +38,6 @@ cluster_key <- sc_obj@meta.data %>%
 Idents(sc_obj) <- sc_obj@meta.data[,cluster_key]
 DefaultAssay(sc_obj) <- assay
 
-# Store the cluster name for ease down the line.
-sc_obj$main_cluster <- Idents(sc_obj)
-
 # ***** subset clusters and make umap
 # first define functions to run seurat analysis
 seurat_analysis <- function(sc_obj=sc_obj_subset, assay=assay){

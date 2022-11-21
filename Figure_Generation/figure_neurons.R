@@ -1,12 +1,13 @@
 "Make figure for the Neuron_1 cluster
 
-Usage: figure_qc.R --file_sc_obj=<file> --file_functions=<file> --file_markers=<file>
+Usage: figure_qc.R --file_sc_obj=<file> --file_functions=<file> --file_markers=<file> --res=<value>
 
 Options:
   -h --help			Show this screen.
   --file_sc_obj=<file>		The rds file after clustering
   --file_markers=<file>		The tsv file containing marker genes for the cluster
   --file_functions=<file> The .R file containing all functions
+  --res=<value>           The resolution of clustering
 " -> doc
 
 # Load libraries
@@ -24,10 +25,12 @@ arguments <- docopt(doc, quoted_args=TRUE)
 file_sc_obj <- arguments$file_sc_obj
 file_functions <- arguments$file_functions
 file_markers <- arguments$file_markers
+res <- arguments$res
 
 message("file_sc_obj: ", file_sc_obj)
 message("file_functions: ", file_functions)
 message("file_markers: ", file_markers)
+message("res: ", res)
 
 # load all functions defined in the r-script
 source(file_functions)
@@ -47,12 +50,12 @@ ggsave(plot, filename=filename, width=10, height=10)
 # Custom settings for custom plots
 markergenes <- c("Gad2", "Slc17a6", "Pmch", "Cartpt", "Pomc", "Avp",  "Prlr", "Pgr", "Npy", "Agrp", "Oxt", "Sst", "Hcrtr2")
 # Rename idents
-res <- 0.1 #This was the resolution at which the neurons were clustered
+
 cluster_key <- sc_obj@meta.data %>%
   names %>%
   grep(pattern=paste0("snn_res.",res), value=TRUE)
 plot <- DotPlot(sc_obj, features=markergenes, group.by=cluster_key) +
-  scale_color_gradient(low="white", high="black") +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 filename=paste0("dotplot_nolabel.pdf")
 ggsave(plot, filename=filename, width=8, height=4)
@@ -77,7 +80,7 @@ sc_obj <- RenameIdents(sc_obj, "0"= "GABA Neurons",
 Idents(sc_obj) <- factor(Idents(sc_obj), levels=levels(sc_obj)[c(1:6,14,7:13)])
 
 plot <- DotPlot(sc_obj, features=markergenes) +
-  scale_color_gradient(low="white", high="black") +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   ylab("Cluster") +
   xlab("Gene")
@@ -88,7 +91,7 @@ ggsave(plot, filename=filename, width=10, height=4)
 features_campbell <-"Hdc\nSlc18a2\nMaob\nPenk\nGm8773\nChodl\nTh\nOnecut2\nNr4a2\nCalb2\nPnoc\nAp3b1\nHtr2c\nVcan\nSatb1\nOxt\nAngpt1\nFkbp11\nNxph1\nNr3c1\nBcl2\nCoch\nTrpc6\nOtof\nFam159b\nArhgap36\nIfi27\nGhrh\nGal\nSlc18a3\nTrh\nCox6a2\nH2-K1\nNr0b1\nAmigo2\nAgrp\nNpy\nSerpina3n\nAcvr1c\nFam159b\nTtr\nH2-Q2\nPomc\nCartpt\nNpy1r\nVip\nRgs16\nRora\nLmo1\nEnpp2\nKrt77\nCck\nNmu\nPtk2b\nNhlh2\nNr5a2\nRxfp1\nGfra1\nGlipr1\nPgr\nSytl4\nNpy5r\nLamp5\nCbln4\nSstr2\nSst\nPthlh\nCol25a1\nIcam5\nUnc13c\nSox14\nRxrg\nCrabp1\nVgll3\nHtr3b\nTbx19\nCd1d1\nUst\nQrfp\nC1ql3\nRprm\nSlc17a6\nAdcyap1\nFezf1\nSlc17a8\nNpnt\nPtgds\nSynpr\nAI593442\nPcsk2\nGpc3\nTmem163\nGabrq\n"
 features_campbell <- strsplit(features_campbell, split="\n") %>% unlist() %>% unique()
 plot <- DotPlot(sc_obj, features=features_campbell, cluster.idents=TRUE) +
-  scale_color_gradient(low="white", high="black") +
+  scale_color_gradientn(colors=brewer.pal(n=9,"GnBu")) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   xlab("Cluster") +
   ylab("Gene")
@@ -154,3 +157,10 @@ plot <- DimPlot(sc_obj, cols=col_reps, group.by="rep", reduction="umap", pt.size
   theme(legend.position="none")
 filename=paste0("umap_by_repeat.png")
 ggsave(plot=plot, filename=filename, width=7, height=7)
+
+# export subcluster annotations
+cell_annotations <- sc_obj@meta.data %>%
+  select(c(main_cluster, annotations)) %>%
+  rename(sub_cluster=annotations)
+filename="annotations_neurons.tsv"
+write.table(cell_annotations, file=filename, sep="\t")

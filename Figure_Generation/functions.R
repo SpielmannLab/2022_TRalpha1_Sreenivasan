@@ -77,6 +77,27 @@ if(length(unique(cellno1[,grouping_var]))==2){
 return(list(cellno=cellno, plot1=plot1, plot2=plot2)) #returns the ggplot object and the cell no dataframe
 }
 
+# Code copied from scpipeline
+perform_merge <- function(sc_list, project="MyProject", nhvg, covars=NULL){
+	sc <- merge(x=sc_list[[1]],
+		y=sc_list[-1],
+		project=project,
+		merge.data=TRUE
+		)
+	sc <- FindVariableFeatures(sc,
+		assay = "RNA",
+		selection.method = "vst",
+		nfeatures = nhvg,
+		verbose=FALSE
+		)
+	sc <- ScaleData(sc,
+		features = rownames(sc),
+		assay = "RNA",
+		vars.to.regress = covars,
+		verbose=FALSE
+		)
+	return(sc)
+}
 
 # Code copied from sc_pipeline
 perform_standard_integration <- function(sc_list, reference, anchor.features, reduction="cca", dims=1:30, sample.tree, covars=NULL){
@@ -161,13 +182,14 @@ seurat_to_anndata <- function(sc_obj=sc_obj, assay="RNA", filename="anndata.h5ad
 }
 
 
-FindHighExpressGenes <- function(sc_obj, assay="RNA", slot="data", n=50){
+FindHighExpressGenes <- function(sc_obj, slot="data", n=50){
 # A custom function to find the top expressed genes per Ident. Not DE genes
 # n is the number of highly expressed genes to be found
 
   # extract data from sc_obj
   grouping <- Idents(sc_obj)
   groups <- levels(sc_obj)
+  assay <- DefaultAssay(sc_obj)
   matrix <- GetAssayData(sc_obj, assay=assay, slot=slot)
 
   # Define a subfunction to find highly expressed genes per cluster
