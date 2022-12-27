@@ -75,7 +75,7 @@ ggsave(plot=plot + theme(legend.position="right"), filename=filename, width=7*5/
 filename=paste0("FeaturePlot_cluster",coi,"_int_degenes_chosen.png")
 ggsave(plot=plot, filename=filename, width=7*5/2, height=7*2/2) # size divided by 4 because it will be 1/4th of the size on the figure
 
-# Violin plot of top 10 DE genes per genotype for Supplementary Figure
+# Violin plot of all DE genes that pass strict statistical filtering
 # Make FeaturePlot
 foi_tra1 <- markers %>%
   filter(avg_log2FC > 0.5 & p_val_adj < 1E-20) %>%
@@ -91,38 +91,47 @@ foi_wt <- markers %>%
   arrange(desc(pct_diff)) %>%
   .$gene
 
-plot <- VlnPlot(sc_obj, features=foi_tra1, group.by="genotype", ncol=7, cols=c("#ca2027","#0272b0")) &
-  theme(text=element_text(family="sans", size=12),
-    plot.title=element_text(size=10, face="italic"),
-    axis.title=element_blank(),
-    axis.text=element_text(family="sans", size=12),
-    legend.position="none",
-    aspect.ratio=1) &
-    scale_x_discrete(breaks=c("tra1","wt"), labels=c("TR\U03C3\U0031+m","WT"))
+# CReate a custome violin plot routine for smaller and transparent points
+custom_VlnPlot <- function(sc_obj=sc_obj, group.by="genotype", features, slot="data"){
+  plot <- list()
+  for (feature in features){
+
+    #Get gene expression data
+    gex_data <- FetchData(sc_obj, vars=feature, slot=slot)
+    colnames(gex_data) <- "expression"
+    gex_ident_data <- cbind(gex_data, sc_obj[[group.by]])
+
+    plot[[feature]] <- ggplot(gex_ident_data,
+      aes_string(x=group.by, y="expression", fill=group.by)) +
+        geom_violin() +
+        scale_fill_manual(breaks=c("tra1","wt"), values=c("#ca2027","#0272b0")) +
+        geom_jitter(size=0.1, width=0.2, alpha=0.1) +
+        theme_classic() +
+        ggtitle(feature) +
+        theme(text=element_text(family="sans", size=12),
+          plot.title=element_text(size=10, face="italic", hjust=0.5),
+          axis.title=element_blank(),
+          axis.text=element_text(family="sans", size=12),
+          axis.text.x=element_text(angle=45, hjust=1,vjust=1),
+          legend.position="none",
+          aspect.ratio=1) +
+        scale_x_discrete(breaks=c("tra1","wt"),   labels=c("TR\U03B1\U0031+m","WT"))
+  }
+
+  return(plot)
+}
+
+plots <- custom_VlnPlot(sc_obj, features=foi_tra1, group.by="genotype")
 filename=paste0("ViolinPlot_cluster",coi,"_int_degenes_tra1.png")
-ggsave(plot=plot, filename=filename, width=1.5*7, height=2*7) # size divided by 4 because it will be 1/4th of the size on the figure
+ggsave(plot=plot_grid(plotlist=plots, ncol=7), filename=filename, width=1.5*7, height=1.6*7)
 
-plot <- VlnPlot(sc_obj, features=foi_wt[1:35], group.by="genotype", ncol=7, cols=c("#ca2027","#0272b0")) &
-  theme(text=element_text(family="sans", size=12),
-    plot.title=element_text(size=10, face="italic"),
-    axis.title=element_blank(),
-    axis.text=element_text(family="sans", size=12),
-    legend.position="none",
-    aspect.ratio=1)  &
-    scale_x_discrete(breaks=c("tra1","wt"), labels=c("TR\U03C3\U0031+m","WT"))
+plots <- custom_VlnPlot(sc_obj, features=foi_wt[1:35], group.by="genotype")
 filename=paste0("ViolinPlot_cluster",coi,"_int_degenes_wt_1.png")
-ggsave(plot=plot, filename=filename, width=1.5*7, height=2*7)
+ggsave(plot=plot_grid(plotlist=plots, ncol=7), filename=filename, width=1.5*7, height=1.6*7)
 
-plot <- VlnPlot(sc_obj, features=foi_wt[36:66], group.by="genotype", ncol=7, cols=c("#ca2027","#0272b0")) &
-  theme(text=element_text(family="sans", size=12),
-    plot.title=element_text(size=10, face="italic"),
-    axis.title=element_blank(),
-    axis.text=element_text(family="sans", size=12),
-    legend.position="none",
-    aspect.ratio=1) &
-    scale_x_discrete(breaks=c("tra1","wt"), labels=c("TR\U03C3\U0031+m","WT"))
+plots <- custom_VlnPlot(sc_obj, features=foi_wt[36:66], group.by="genotype")
 filename=paste0("ViolinPlot_cluster",coi,"_int_degenes_wt_2.png")
-ggsave(plot=plot, filename=filename, width=1.5*7, height=2*7)
+ggsave(plot=plot_grid(plotlist=plots, ncol=7), filename=filename, width=1.5*7, height=1.6*7)
 
 # Create Feature Plots for ODC for SI
 # Features from LaManno extended data figure 7
