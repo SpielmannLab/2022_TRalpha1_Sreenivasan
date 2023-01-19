@@ -1,4 +1,6 @@
 # 2022_TRalpha1_Sreenivasan
+ **Read Only - Archived on 19th Jan 2023**
+ 
 Following are the scripts used to analyse data, as presented in the manuscript
 
 1. Run `Preprocess_fastq/script_count_wrap.sh` to generate gene expression count matrices from sequencing fastq files
